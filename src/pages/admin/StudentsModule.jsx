@@ -16,11 +16,11 @@ const StudentsModule = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [showStudentPass, setShowStudentPass] = useState(false);
-  const [showParentPass, setShowParentPass] = useState(false);
+  const [showPortalPass, setShowPortalPass] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
+    admission_number: '',
     first_name: '',
     last_name: '',
     other_names: '',
@@ -38,8 +38,7 @@ const StudentsModule = () => {
     guardian_phone: '',
     guardian_email: '',
     guardian_address: '',
-    student_password: 'password123',
-    parent_password: 'password123',
+    portal_password: 'password123',
   });
 
   const [saving, setSaving] = useState(false);
@@ -82,7 +81,10 @@ const StudentsModule = () => {
 
   const handleOpenCreate = () => {
     setEditingStudent(null);
+    const year = new Date().getFullYear();
+    const nextSeq = String(students.length + 1).padStart(3, '0');
     setFormData({
+      admission_number: `EAF/${year}/${nextSeq}`,
       first_name: '',
       last_name: '',
       other_names: '',
@@ -100,11 +102,9 @@ const StudentsModule = () => {
       guardian_phone: '',
       guardian_email: '',
       guardian_address: '',
-      student_password: 'password123',
-      parent_password: 'password123',
+      portal_password: 'password123',
     });
-    setShowStudentPass(false);
-    setShowParentPass(false);
+    setShowPortalPass(false);
     setIsModalOpen(true);
   };
 
@@ -112,6 +112,7 @@ const StudentsModule = () => {
     setEditingStudent(student);
     const primaryG = student.student_guardians?.[0]?.guardians;
     setFormData({
+      admission_number: student.admission_number || '',
       first_name: student.first_name,
       last_name: student.last_name,
       other_names: student.other_names || '',
@@ -129,11 +130,9 @@ const StudentsModule = () => {
       guardian_phone: primaryG?.phone || '',
       guardian_email: primaryG?.email || '',
       guardian_address: primaryG?.home_address || '',
-      student_password: student.portal_password || 'password123',
-      parent_password: primaryG?.portal_password || 'password123',
+      portal_password: student.portal_password || primaryG?.portal_password || 'password123',
     });
-    setShowStudentPass(false);
-    setShowParentPass(false);
+    setShowPortalPass(false);
     setIsModalOpen(true);
   };
 
@@ -141,8 +140,10 @@ const StudentsModule = () => {
     e.preventDefault();
     setSaving(true);
 
-    const studentPass = formData.student_password?.trim() || 'password123';
-    const parentPass = formData.parent_password?.trim() || 'password123';
+    const year = new Date().getFullYear();
+    const nextSeq = String(students.length + 1).padStart(3, '0');
+    const admission_number = (formData.admission_number || '').trim() || `EAF/${year}/${nextSeq}`;
+    const portalPassword = (formData.portal_password || '').trim() || 'password123';
 
     try {
       if (editingStudent) {
@@ -150,6 +151,7 @@ const StudentsModule = () => {
         const { error } = await supabase
           .from('students')
           .update({
+            admission_number,
             first_name: formData.first_name,
             last_name: formData.last_name,
             other_names: formData.other_names,
@@ -162,7 +164,7 @@ const StudentsModule = () => {
             lga: formData.lga,
             home_address: formData.home_address,
             medical_conditions: formData.medical_conditions,
-            portal_password: studentPass,
+            portal_password: portalPassword,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingStudent.id);
@@ -180,7 +182,7 @@ const StudentsModule = () => {
               phone: formData.guardian_phone,
               email: formData.guardian_email,
               home_address: formData.guardian_address || formData.home_address,
-              portal_password: parentPass,
+              portal_password: portalPassword,
             })
             .eq('id', primaryG.id);
         } else if (formData.guardian_name && formData.guardian_phone) {
@@ -192,7 +194,7 @@ const StudentsModule = () => {
               phone: formData.guardian_phone,
               email: formData.guardian_email,
               home_address: formData.guardian_address || formData.home_address,
-              portal_password: parentPass,
+              portal_password: portalPassword,
             })
             .select()
             .single();
@@ -211,7 +213,7 @@ const StudentsModule = () => {
         try {
           await supabase.rpc('register_portal_user', {
             p_email: studentEmail,
-            p_password: studentPass,
+            p_password: portalPassword,
             p_role: 'student',
             p_full_name: `${formData.first_name} ${formData.last_name}`,
             p_phone: formData.guardian_phone
@@ -225,7 +227,7 @@ const StudentsModule = () => {
           try {
             await supabase.rpc('register_portal_user', {
               p_email: formData.guardian_email,
-              p_password: parentPass,
+              p_password: portalPassword,
               p_role: 'parent',
               p_full_name: formData.guardian_name,
               p_phone: formData.guardian_phone
@@ -235,12 +237,8 @@ const StudentsModule = () => {
           }
         }
 
-        showToast('Student & guardian credentials updated successfully');
+        showToast(`Pupil record updated! Login ID: ${admission_number}`);
       } else {
-        // Auto-generate admission number: EAF/YEAR/SEQUENCE
-        const year = new Date().getFullYear();
-        const nextSeq = String(students.length + 1).padStart(3, '0');
-        const admission_number = `EAF/${year}/${nextSeq}`;
         const studentEmail = `${formData.first_name.toLowerCase().replace(/[^a-z0-9]/g, '')}.${formData.last_name.toLowerCase().replace(/[^a-z0-9]/g, '')}@student.edenacademy.ng`;
 
         // 1. Insert student
@@ -261,7 +259,7 @@ const StudentsModule = () => {
             home_address: formData.home_address,
             medical_conditions: formData.medical_conditions,
             passport_url: '/img/student-icon.png',
-            portal_password: studentPass,
+            portal_password: portalPassword,
           })
           .select()
           .single();
@@ -272,7 +270,7 @@ const StudentsModule = () => {
         try {
           await supabase.rpc('register_portal_user', {
             p_email: studentEmail,
-            p_password: studentPass,
+            p_password: portalPassword,
             p_role: 'student',
             p_full_name: `${formData.first_name} ${formData.last_name}`,
             p_phone: formData.guardian_phone
@@ -291,7 +289,7 @@ const StudentsModule = () => {
               phone: formData.guardian_phone,
               email: formData.guardian_email,
               home_address: formData.guardian_address || formData.home_address,
-              portal_password: parentPass,
+              portal_password: portalPassword,
             })
             .select()
             .single();
@@ -308,7 +306,7 @@ const StudentsModule = () => {
             try {
               await supabase.rpc('register_portal_user', {
                 p_email: formData.guardian_email,
-                p_password: parentPass,
+                p_password: portalPassword,
                 p_role: 'parent',
                 p_full_name: formData.guardian_name,
                 p_phone: formData.guardian_phone
@@ -319,7 +317,7 @@ const StudentsModule = () => {
           }
         }
 
-        showToast(`Pupil enrolled! Admission No: ${admission_number} • Password: ${studentPass}`);
+        showToast(`Pupil enrolled! Login ID: ${admission_number} • Password: ${portalPassword}`);
       }
 
       setIsModalOpen(false);
@@ -715,70 +713,67 @@ const StudentsModule = () => {
                 </div>
               </div>
 
-              {/* Portal Login Passwords */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
-                <div className="flex items-center space-x-1.5 text-brand-navy font-bold text-xs uppercase tracking-wider">
-                  <KeyRound size={14} className="text-brand-blue" />
-                  <span>Portal Login Passwords (Pupil & Guardian Access)</span>
+              {/* Unified Student & Parent Portal Login Credentials */}
+              <div className="bg-gradient-to-r from-blue-50/70 to-indigo-50/70 p-4 rounded-2xl border border-blue-200/80 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-brand-navy font-bold text-xs uppercase tracking-wider">
+                    <KeyRound size={15} className="text-brand-blue" />
+                    <span>Portal Login Credentials (Pupil & Parent Shared Login)</span>
+                  </div>
+                  <span className="text-[11px] font-semibold text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-full">
+                    Single Shared Login
+                  </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <p className="text-xs text-slate-600">
+                  Both the pupil and parent use this single Admission Number and Password to access terminal results, CBT exams, and fee payments at <span className="font-bold text-brand-navy">/login</span>.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1 flex items-center justify-between text-xs">
-                      <span className="flex items-center space-x-1">
-                        <Lock size={12} className="text-brand-blue" />
-                        <span>Pupil Portal Password *</span>
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-normal">Used at /login</span>
+                    <label className="block text-slate-800 font-bold mb-1 text-xs flex items-center justify-between">
+                      <span>Admission Number (Login ID) *</span>
+                      <span className="text-[10px] text-slate-500 font-normal">Auto-assigned</span>
                     </label>
-                    <div className="relative">
-                      <input
-                        type={showStudentPass ? 'text' : 'password'}
-                        required
-                        placeholder="e.g. password123"
-                        value={formData.student_password}
-                        onChange={(e) => setFormData({ ...formData, student_password: e.target.value })}
-                        className="w-full p-2 pr-9 border border-slate-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-brand-blue"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowStudentPass(!showStudentPass)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        {showStudentPass ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      Pupil signs in with their Admission Number and this password.
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. EAF/2026/001"
+                      value={formData.admission_number}
+                      onChange={(e) => setFormData({ ...formData, admission_number: e.target.value })}
+                      className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold tracking-wide bg-white focus:ring-2 focus:ring-brand-blue"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Entered in the "Admission Number or Email" field at login.
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1 flex items-center justify-between text-xs">
+                    <label className="block text-slate-800 font-bold mb-1 text-xs flex items-center justify-between">
                       <span className="flex items-center space-x-1">
                         <Lock size={12} className="text-brand-blue" />
-                        <span>Parent Portal Password *</span>
+                        <span>Portal Password *</span>
                       </span>
-                      <span className="text-[10px] text-slate-500 font-normal">Used at /login</span>
+                      <span className="text-[10px] text-slate-500 font-normal">Min 6 characters</span>
                     </label>
                     <div className="relative">
                       <input
-                        type={showParentPass ? 'text' : 'password'}
+                        type={showPortalPass ? 'text' : 'password'}
                         required
                         placeholder="e.g. password123"
-                        value={formData.parent_password}
-                        onChange={(e) => setFormData({ ...formData, parent_password: e.target.value })}
-                        className="w-full p-2 pr-9 border border-slate-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-brand-blue"
+                        value={formData.portal_password}
+                        onChange={(e) => setFormData({ ...formData, portal_password: e.target.value })}
+                        className="w-full p-2.5 pr-10 border border-slate-300 rounded-xl text-sm font-medium bg-white focus:ring-2 focus:ring-brand-blue"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowParentPass(!showParentPass)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        onClick={() => setShowPortalPass(!showPortalPass)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                       >
-                        {showParentPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                        {showPortalPass ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      Parent signs in with their email and this password to view results & pay fees.
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Shared password used by pupil and parent to sign into the portal.
                     </p>
                   </div>
                 </div>
