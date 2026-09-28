@@ -46,12 +46,12 @@ export const DEMO_USERS = {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('eaf_current_user');
-    return saved ? JSON.parse(saved) : DEMO_USERS.admin; // Default to admin for seamless setup
+    return saved ? JSON.parse(saved) : null;
   });
 
   const [activeWard, setActiveWard] = useState(() => {
     const saved = localStorage.getItem('eaf_active_ward');
-    return saved ? JSON.parse(saved) : DEMO_USERS.parent.wards[0];
+    return saved ? JSON.parse(saved) : null;
   });
 
   useEffect(() => {
@@ -65,6 +65,8 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (activeWard) {
       localStorage.setItem('eaf_active_ward', JSON.stringify(activeWard));
+    } else {
+      localStorage.removeItem('eaf_active_ward');
     }
   }, [activeWard]);
 
@@ -80,10 +82,37 @@ export const AuthProvider = ({ children }) => {
     return false;
   };
 
-  const loginWithCredentials = async (email, password, roleHint = 'admin') => {
+  const loginWithCredentials = async (emailOrId, password, roleHint = 'admin') => {
+    const identifier = (emailOrId || '').trim();
+
     try {
+      // If identifier is an admission number (e.g. EAF/...)
+      if (identifier.toUpperCase().startsWith('EAF/')) {
+        const { data: stData } = await supabase
+          .from('students')
+          .select('*, classes(name, arm)')
+          .ilike('admission_number', identifier)
+          .single();
+
+        if (stData) {
+          const studentObj = {
+            id: stData.id,
+            student_id: stData.id,
+            admission_number: stData.admission_number,
+            email: stData.email || `${stData.first_name.toLowerCase()}@student.edenacademy.ng`,
+            role: 'student',
+            full_name: `${stData.first_name} ${stData.last_name}`,
+            class_name: stData.classes?.name ? `${stData.classes.name} ${stData.classes.arm || ''}` : 'Primary 1 Gold',
+            gender: stData.gender || 'Pupil',
+          };
+          setUser(studentObj);
+          return { success: true, role: 'student' };
+        }
+      }
+
+      // Standard Supabase Auth attempt
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: identifier,
         password,
       });
       if (error) throw error;
@@ -99,21 +128,29 @@ export const AuthProvider = ({ children }) => {
         id: data.user.id,
         email: data.user.email,
         role: profile?.role || roleHint,
-        full_name: profile?.full_name || email.split('@')[0],
+        full_name: profile?.full_name || identifier.split('@')[0],
       };
       setUser(userObj);
       return { success: true, role: userObj.role };
     } catch (err) {
-      // Fallback: if offline or using demo test account
+      // Fallback: match by email, username, or role
+      const lower = identifier.toLowerCase();
       const matched = Object.values(DEMO_USERS).find(u => 
-        u.email.toLowerCase() === email.toLowerCase() || 
-        (email.toLowerCase().includes('admin') && u.role === 'admin')
+        u.email.toLowerCase() === lower || 
+        u.admission_number?.toLowerCase() === lower ||
+        (roleHint === 'admin' && (lower.includes('admin') || lower === 'saviour')) ||
+        (roleHint === 'teacher' && (lower.includes('teacher') || lower.includes('pam') || lower.includes('blessing'))) ||
+        (roleHint === 'student' && (lower.includes('student') || lower.includes('david') || lower.includes('gofwen')))
       );
+
       if (matched) {
         setUser(matched);
+        if (matched.role === 'parent' && matched.wards?.length > 0) {
+          setActiveWard(matched.wards[0]);
+        }
         return { success: true, role: matched.role };
       }
-      return { success: false, error: err.message };
+      return { success: false, error: err.message || 'Invalid credentials' };
     }
   };
 

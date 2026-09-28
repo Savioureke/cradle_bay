@@ -7,13 +7,19 @@ import {
   Calendar, CheckSquare, Award, BookMarked, MessageSquare, 
   Settings, LogOut, Menu, X, Bell, ChevronRight, School
 } from 'lucide-react';
+import AdminLoginPage from '../pages/admin/AdminLoginPage';
 
 const AdminLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const { school, activeSession, activeTerm, allTerms, setScopedTerm } = useSchool();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // If not logged in as admin, display the dedicated Administrator Login Form
+  if (!user || !isAdmin) {
+    return <AdminLoginPage />;
+  }
 
   const navItems = [
     { label: 'Dashboard', path: '/admin', icon: School, exact: true },
@@ -33,7 +39,6 @@ const AdminLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   return (

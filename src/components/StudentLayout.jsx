@@ -8,12 +8,17 @@ import {
 } from 'lucide-react';
 
 const StudentLayout = () => {
-  const { user, activeWard, setActiveWard, isParent, logout } = useAuth();
+  const { user, isStudent, isParent, activeWard, setActiveWard, logout } = useAuth();
   const { school, activeSession, activeTerm } = useSchool();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [wardDropdown, setWardDropdown] = useState(false);
+
+  // If not logged in as student or parent, redirect to pupil/parent login form
+  if (!user || (!isStudent && !isParent)) {
+    return <Navigate to="/login" replace />;
+  }
 
   const navItems = [
     { label: 'Portal Home', path: '/students', icon: Home, exact: true },

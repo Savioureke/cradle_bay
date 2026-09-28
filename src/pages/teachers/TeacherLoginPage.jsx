@@ -1,0 +1,139 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useSchool } from '../../context/SchoolContext';
+import { Lock, Mail, ArrowRight, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
+
+const TeacherLoginPage = () => {
+  const { loginWithCredentials } = useAuth();
+  const { school } = useSchool();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleTeacherLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const result = await loginWithCredentials(email.trim(), password, 'teacher');
+    setLoading(false);
+
+    if (result.success) {
+      if (result.role !== 'teacher') {
+        setError('Access Denied: This workspace is strictly for teaching faculty. Pupils should use the Student Portal at /login, and administrators should use /admin.');
+      }
+      // If role === 'teacher', AuthContext updates user and TeacherLayout renders workspace!
+    } else {
+      setError(result.error || 'Invalid teacher credentials. Please verify your staff email and password.');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Emerald Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10">
+        <Link to="/" className="inline-flex items-center space-x-3 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-brand-navy text-emerald-400 flex items-center justify-center font-black text-2xl shadow-2xl border-2 border-emerald-500/40">
+            E
+          </div>
+        </Link>
+        <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
+          <BookOpen size={14} />
+          <span>Faculty Portal</span>
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+          Teacher Workspace
+        </h2>
+        <p className="text-xs text-slate-400 mt-1">
+          {school.name} • Bokkos, Plateau State
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <div className="bg-slate-800/90 backdrop-blur-md py-8 px-6 sm:px-10 rounded-3xl shadow-2xl border border-slate-700 space-y-6">
+          <div className="border-b border-slate-700 pb-3">
+            <h3 className="font-bold text-white text-sm">Staff Sign In</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Enter registered teaching staff credentials to manage class attendance, enter scores, and upload e-learning resources.
+            </p>
+          </div>
+
+          <form onSubmit={handleTeacherLogin} className="space-y-4 text-xs">
+            <div>
+              <label className="block text-slate-300 font-bold mb-1.5 uppercase text-[10px]">
+                Staff Email Address *
+              </label>
+              <div className="relative">
+                <Mail size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                <input
+                  type="email"
+                  required
+                  placeholder="pam.gyang@edenacademyfwangnin.sch.ng"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 placeholder-slate-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-300 font-bold mb-1.5 uppercase text-[10px]">
+                Password *
+              </label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs font-medium focus:ring-2 focus:ring-emerald-500 placeholder-slate-500"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs flex items-center space-x-2">
+                <AlertCircle size={16} className="flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 text-xs tracking-wider uppercase mt-2"
+            >
+              {loading ? (
+                <>
+                  <RefreshCw size={15} className="animate-spin" />
+                  <span>Verifying Faculty Credentials...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In to Teacher Workspace</span>
+                  <ArrowRight size={14} />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="pt-2 border-t border-slate-700 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Staff Portal Access</span>
+            <Link to="/" className="text-emerald-400 font-semibold hover:underline">
+              ← Return to School Homepage
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TeacherLoginPage;

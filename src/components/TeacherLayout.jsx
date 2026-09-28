@@ -6,13 +6,19 @@ import {
   Home, CheckSquare, Award, BookOpen, Calendar, 
   MessageSquare, FileText, LogOut, Menu, X, Bell, ChevronRight
 } from 'lucide-react';
+import TeacherLoginPage from '../pages/teachers/TeacherLoginPage';
 
 const TeacherLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, isTeacher, logout } = useAuth();
   const { school, activeSession, activeTerm } = useSchool();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // If not logged in as teacher, display the dedicated Teacher Workspace Login Form
+  if (!user || !isTeacher) {
+    return <TeacherLoginPage />;
+  }
 
   const navItems = [
     { label: 'My Dashboard', path: '/teachers', icon: Home, exact: true },
@@ -26,7 +32,6 @@ const TeacherLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   return (

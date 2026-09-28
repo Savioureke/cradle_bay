@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSchool } from '../context/SchoolContext';
 import { 
-  Lock, Mail, ArrowRight, ShieldCheck, School, 
-  AlertCircle, RefreshCw 
+  Lock, User, ArrowRight, GraduationCap, 
+  AlertCircle, RefreshCw, KeyRound, CreditCard
 } from 'lucide-react';
 
 const LoginPage = () => {
@@ -12,7 +12,7 @@ const LoginPage = () => {
   const { school } = useSchool();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -22,21 +22,21 @@ const LoginPage = () => {
     setLoading(true);
     setError(null);
 
-    const result = await loginWithCredentials(email.trim(), password);
+    const cleanId = identifier.trim();
+    const result = await loginWithCredentials(cleanId, password, 'student');
     setLoading(false);
 
     if (result.success && result.role) {
-      // Automatic role-based routing
       if (result.role === 'admin') {
-        navigate('/admin', { replace: true });
+        setError('Administrator account detected. This portal is for pupils and parents only. Please access the Administrator Console directly at /admin.');
       } else if (result.role === 'teacher') {
-        navigate('/teachers', { replace: true });
+        setError('Teaching staff account detected. This portal is for pupils and parents only. Please access the Teacher Workspace directly at /teachers.');
       } else {
-        // 'student' or 'parent'
+        // 'student' or 'parent' -> direct to student portal
         navigate('/students', { replace: true });
       }
     } else {
-      setError(result.error || 'Invalid email or password. Please verify credentials.');
+      setError(result.error || 'Invalid admission number/email or password. Please verify credentials.');
     }
   };
 
@@ -48,37 +48,40 @@ const LoginPage = () => {
             E
           </div>
         </Link>
+        <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-brand-blue text-xs font-bold uppercase tracking-wider mb-2">
+          <GraduationCap size={15} />
+          <span>Pupil & Parent Portal</span>
+        </div>
         <h2 className="text-2xl font-black text-brand-navy uppercase tracking-tight">
           {school.name}
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Bokkos, Plateau State • Unified School Management Portal
+          Bokkos, Plateau State • Terminal Results, CBT Exams & School Fees
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 rounded-3xl shadow-xl border border-slate-200 space-y-6">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="font-bold text-slate-900 text-sm">Account Sign In</h3>
+            <h3 className="font-bold text-slate-900 text-sm">Pupil / Guardian Sign In</h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Enter your registered school email address and password to access your designated portal.
+              Enter your Student Admission Number (e.g. <span className="font-mono text-brand-blue font-semibold">EAF/2025/001</span>) or registered parent email address.
             </p>
           </div>
 
-          {/* Clean Form */}
           <form onSubmit={handleLogin} className="space-y-4 text-xs">
             <div>
               <label className="block text-slate-700 font-bold mb-1.5 uppercase text-[10px]">
-                Email Address *
+                Admission Number or Email *
               </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                <User size={16} className="absolute left-3.5 top-3 text-slate-400" />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="e.g. admin@edenacademyfwangnin.sch.ng"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. EAF/2025/001 or parent@gmail.com"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-slate-900 text-xs font-medium focus:ring-2 focus:ring-brand-blue"
                 />
               </div>
@@ -86,7 +89,7 @@ const LoginPage = () => {
 
             <div>
               <label className="block text-slate-700 font-bold mb-1.5 uppercase text-[10px]">
-                Password *
+                Portal Password *
               </label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-3 text-slate-400" />
@@ -116,21 +119,32 @@ const LoginPage = () => {
               {loading ? (
                 <>
                   <RefreshCw size={15} className="animate-spin" />
-                  <span>Verifying Credentials...</span>
+                  <span>Verifying Student Account...</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Sign In to Student Dashboard</span>
                   <ArrowRight size={14} />
                 </>
               )}
             </button>
           </form>
 
+          {/* Quick Guidance */}
+          <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2 text-[11px] text-slate-500">
+            <div className="flex items-center space-x-2 text-slate-700 font-bold">
+              <KeyRound size={14} className="text-brand-amber flex-shrink-0" />
+              <span>Checking Terminal Results?</span>
+            </div>
+            <p>
+              Log in with your admission number above, then navigate to <strong>Term Results & PIN</strong> inside your dashboard to enter your scratch-card token.
+            </p>
+          </div>
+
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Secure 256-Bit SSL Auth</span>
+            <span>Official Student Portal</span>
             <Link to="/" className="text-brand-blue font-semibold hover:underline">
-              ← Back to Homepage
+              ← Return to School Homepage
             </Link>
           </div>
         </div>
