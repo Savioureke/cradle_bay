@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { 
   Users, UserPlus, Search, Edit, Trash2, CheckCircle, 
-  Briefcase, BookOpen, Layers, Phone, Mail, Award, RefreshCw 
+  Briefcase, BookOpen, Layers, Phone, Mail, Award, RefreshCw,
+  Lock, KeyRound, Eye, EyeOff
 } from 'lucide-react';
 
 const TeachersModule = () => {
@@ -15,6 +16,7 @@ const TeachersModule = () => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -25,6 +27,7 @@ const TeachersModule = () => {
     qualification: 'B.Ed',
     specialization: '',
     status: 'active',
+    password: 'password123',
   });
 
   // Assignment state
@@ -74,7 +77,9 @@ const TeachersModule = () => {
       qualification: 'B.Ed',
       specialization: '',
       status: 'active',
+      password: 'password123',
     });
+    setShowPassword(false);
     setIsModalOpen(true);
   };
 
@@ -88,7 +93,9 @@ const TeachersModule = () => {
       qualification: t.qualification || 'B.Ed',
       specialization: t.specialization || '',
       status: t.status || 'active',
+      password: t.portal_password || 'password123',
     });
+    setShowPassword(false);
     setIsModalOpen(true);
   };
 
@@ -104,24 +111,47 @@ const TeachersModule = () => {
     e.preventDefault();
     setSaving(true);
 
+    const teacherPassword = formData.password?.trim() || 'password123';
+    let teacherEmail = formData.email?.trim();
+    if (!teacherEmail) {
+      const nameParts = formData.full_name.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter(Boolean);
+      teacherEmail = nameParts.length >= 2 
+        ? `${nameParts[0]}.${nameParts[nameParts.length - 1]}@edenacademyfwangnin.sch.ng`
+        : `teacher.${Date.now().toString().slice(-4)}@edenacademyfwangnin.sch.ng`;
+    }
+
     try {
+      // Provision/sync with auth & profiles
+      try {
+        await supabase.rpc('register_portal_user', {
+          p_email: teacherEmail,
+          p_password: teacherPassword,
+          p_role: 'teacher',
+          p_full_name: formData.full_name,
+          p_phone: formData.phone
+        });
+      } catch (authErr) {
+        console.warn('Teacher RPC sync notice:', authErr);
+      }
+
       if (selectedTeacher) {
         const { error } = await supabase
           .from('teachers')
           .update({
             full_name: formData.full_name,
             gender: formData.gender,
-            email: formData.email,
+            email: teacherEmail,
             phone: formData.phone,
             qualification: formData.qualification,
             specialization: formData.specialization,
             status: formData.status,
+            portal_password: teacherPassword,
             updated_at: new Date().toISOString()
           })
           .eq('id', selectedTeacher.id);
 
         if (error) throw error;
-        showToast('Teacher record updated');
+        showToast('Teacher record updated with portal credentials');
       } else {
         const staff_id = `EAF/T/${String(teachers.length + 1).padStart(3, '0')}`;
         const { error } = await supabase
@@ -130,15 +160,16 @@ const TeachersModule = () => {
             staff_id,
             full_name: formData.full_name,
             gender: formData.gender,
-            email: formData.email,
+            email: teacherEmail,
             phone: formData.phone,
             qualification: formData.qualification,
             specialization: formData.specialization,
-            status: formData.status
+            status: formData.status,
+            portal_password: teacherPassword
           });
 
         if (error) throw error;
-        showToast(`Teacher registered! Staff ID: ${staff_id}`);
+        showToast(`Teacher registered! Staff ID: ${staff_id} • Password: ${teacherPassword}`);
       }
 
       setIsModalOpen(false);
@@ -417,6 +448,37 @@ const TeachersModule = () => {
                     className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-blue"
                   />
                 </div>
+              </div>
+
+              {/* Teacher Portal Password */}
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <label className="block text-slate-700 font-bold mb-1 flex items-center justify-between text-xs">
+                  <span className="flex items-center space-x-1.5 text-slate-800">
+                    <Lock size={14} className="text-brand-blue" />
+                    <span>Portal Login Password *</span>
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-normal">Used to sign in at /teachers</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder="e.g. password123 (minimum 6 characters)"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full p-2.5 pr-10 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-brand-blue bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  The teacher will use this password alongside their email or Staff ID to log in to the Teacher Workspace.
+                </p>
               </div>
 
               <div className="flex justify-end space-x-2 pt-3 border-t">

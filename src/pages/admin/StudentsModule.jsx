@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { 
   Users, UserPlus, Search, Filter, Download, Upload, 
-  Edit, Trash2, CheckCircle, AlertCircle, FileText, Camera, RefreshCw
+  Edit, Trash2, CheckCircle, AlertCircle, FileText, Camera, RefreshCw,
+  Lock, KeyRound, Eye, EyeOff
 } from 'lucide-react';
 
 const StudentsModule = () => {
@@ -15,6 +16,8 @@ const StudentsModule = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [showStudentPass, setShowStudentPass] = useState(false);
+  const [showParentPass, setShowParentPass] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -35,6 +38,8 @@ const StudentsModule = () => {
     guardian_phone: '',
     guardian_email: '',
     guardian_address: '',
+    student_password: 'password123',
+    parent_password: 'password123',
   });
 
   const [saving, setSaving] = useState(false);
@@ -48,7 +53,7 @@ const StudentsModule = () => {
           *,
           classes (id, name, arm),
           student_guardians (
-            guardians (id, full_name, phone, relationship, email)
+            guardians (id, full_name, phone, relationship, email, portal_password)
           )
         `)
         .order('created_at', { ascending: false });
@@ -95,7 +100,11 @@ const StudentsModule = () => {
       guardian_phone: '',
       guardian_email: '',
       guardian_address: '',
+      student_password: 'password123',
+      parent_password: 'password123',
     });
+    setShowStudentPass(false);
+    setShowParentPass(false);
     setIsModalOpen(true);
   };
 
@@ -120,13 +129,20 @@ const StudentsModule = () => {
       guardian_phone: primaryG?.phone || '',
       guardian_email: primaryG?.email || '',
       guardian_address: primaryG?.home_address || '',
+      student_password: student.portal_password || 'password123',
+      parent_password: primaryG?.portal_password || 'password123',
     });
+    setShowStudentPass(false);
+    setShowParentPass(false);
     setIsModalOpen(true);
   };
 
   const handleSaveStudent = async (e) => {
     e.preventDefault();
     setSaving(true);
+
+    const studentPass = formData.student_password?.trim() || 'password123';
+    const parentPass = formData.parent_password?.trim() || 'password123';
 
     try {
       if (editingStudent) {
@@ -146,17 +162,86 @@ const StudentsModule = () => {
             lga: formData.lga,
             home_address: formData.home_address,
             medical_conditions: formData.medical_conditions,
+            portal_password: studentPass,
             updated_at: new Date().toISOString(),
           })
           .eq('id', editingStudent.id);
 
         if (error) throw error;
-        showToast('Student record updated successfully');
+
+        // Update guardian record if linked
+        const primaryG = editingStudent.student_guardians?.[0]?.guardians;
+        if (primaryG) {
+          await supabase
+            .from('guardians')
+            .update({
+              full_name: formData.guardian_name,
+              relationship: formData.guardian_relationship,
+              phone: formData.guardian_phone,
+              email: formData.guardian_email,
+              home_address: formData.guardian_address || formData.home_address,
+              portal_password: parentPass,
+            })
+            .eq('id', primaryG.id);
+        } else if (formData.guardian_name && formData.guardian_phone) {
+          const { data: newGuardian } = await supabase
+            .from('guardians')
+            .insert({
+              full_name: formData.guardian_name,
+              relationship: formData.guardian_relationship,
+              phone: formData.guardian_phone,
+              email: formData.guardian_email,
+              home_address: formData.guardian_address || formData.home_address,
+              portal_password: parentPass,
+            })
+            .select()
+            .single();
+
+          if (newGuardian) {
+            await supabase.from('student_guardians').insert({
+              student_id: editingStudent.id,
+              guardian_id: newGuardian.id,
+              is_primary: true
+            });
+          }
+        }
+
+        // Sync pupil auth user
+        const studentEmail = editingStudent.email || `${formData.first_name.toLowerCase().replace(/[^a-z0-9]/g, '')}.${formData.last_name.toLowerCase().replace(/[^a-z0-9]/g, '')}@student.edenacademy.ng`;
+        try {
+          await supabase.rpc('register_portal_user', {
+            p_email: studentEmail,
+            p_password: studentPass,
+            p_role: 'student',
+            p_full_name: `${formData.first_name} ${formData.last_name}`,
+            p_phone: formData.guardian_phone
+          });
+        } catch (authErr) {
+          console.warn('Pupil auth sync notice:', authErr);
+        }
+
+        // Sync parent auth user
+        if (formData.guardian_email) {
+          try {
+            await supabase.rpc('register_portal_user', {
+              p_email: formData.guardian_email,
+              p_password: parentPass,
+              p_role: 'parent',
+              p_full_name: formData.guardian_name,
+              p_phone: formData.guardian_phone
+            });
+          } catch (authErr) {
+            console.warn('Parent auth sync notice:', authErr);
+          }
+        }
+
+        showToast('Student & guardian credentials updated successfully');
       } else {
         // Auto-generate admission number: EAF/YEAR/SEQUENCE
         const year = new Date().getFullYear();
         const nextSeq = String(students.length + 1).padStart(3, '0');
         const admission_number = `EAF/${year}/${nextSeq}`;
+        const studentEmail = `${formData.first_name.toLowerCase().replace(/[^a-z0-9]/g, '')}.${formData.last_name.toLowerCase().replace(/[^a-z0-9]/g, '')}@student.edenacademy.ng`;
 
         // 1. Insert student
         const { data: newStudent, error: sErr } = await supabase
@@ -175,12 +260,26 @@ const StudentsModule = () => {
             lga: formData.lga,
             home_address: formData.home_address,
             medical_conditions: formData.medical_conditions,
-            passport_url: '/img/student-icon.png'
+            passport_url: '/img/student-icon.png',
+            portal_password: studentPass,
           })
           .select()
           .single();
 
         if (sErr) throw sErr;
+
+        // Sync pupil auth user
+        try {
+          await supabase.rpc('register_portal_user', {
+            p_email: studentEmail,
+            p_password: studentPass,
+            p_role: 'student',
+            p_full_name: `${formData.first_name} ${formData.last_name}`,
+            p_phone: formData.guardian_phone
+          });
+        } catch (authErr) {
+          console.warn('Pupil auth sync notice:', authErr);
+        }
 
         // 2. Insert guardian if provided
         if (formData.guardian_name && formData.guardian_phone) {
@@ -191,7 +290,8 @@ const StudentsModule = () => {
               relationship: formData.guardian_relationship,
               phone: formData.guardian_phone,
               email: formData.guardian_email,
-              home_address: formData.guardian_address || formData.home_address
+              home_address: formData.guardian_address || formData.home_address,
+              portal_password: parentPass,
             })
             .select()
             .single();
@@ -203,9 +303,23 @@ const StudentsModule = () => {
               is_primary: true
             });
           }
+
+          if (formData.guardian_email) {
+            try {
+              await supabase.rpc('register_portal_user', {
+                p_email: formData.guardian_email,
+                p_password: parentPass,
+                p_role: 'parent',
+                p_full_name: formData.guardian_name,
+                p_phone: formData.guardian_phone
+              });
+            } catch (authErr) {
+              console.warn('Parent auth sync notice:', authErr);
+            }
+          }
         }
 
-        showToast(`Pupil enrolled successfully! Admission No: ${admission_number}`);
+        showToast(`Pupil enrolled! Admission No: ${admission_number} • Password: ${studentPass}`);
       }
 
       setIsModalOpen(false);
@@ -557,8 +671,8 @@ const StudentsModule = () => {
                 Parent / Guardian Information
               </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="sm:col-span-1">
                   <label className="block text-slate-700 font-bold mb-1">Parent Full Name</label>
                   <input
                     type="text"
@@ -580,7 +694,7 @@ const StudentsModule = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Parent Phone Number *</label>
+                  <label className="block text-slate-700 font-bold mb-1">Parent Phone *</label>
                   <input
                     type="tel"
                     placeholder="e.g. +234 803 123 4567"
@@ -588,6 +702,85 @@ const StudentsModule = () => {
                     onChange={(e) => setFormData({ ...formData, guardian_phone: e.target.value })}
                     className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-blue"
                   />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Parent Email</label>
+                  <input
+                    type="email"
+                    placeholder="parent@example.com"
+                    value={formData.guardian_email}
+                    onChange={(e) => setFormData({ ...formData, guardian_email: e.target.value })}
+                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-blue"
+                  />
+                </div>
+              </div>
+
+              {/* Portal Login Passwords */}
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center space-x-1.5 text-brand-navy font-bold text-xs uppercase tracking-wider">
+                  <KeyRound size={14} className="text-brand-blue" />
+                  <span>Portal Login Passwords (Pupil & Guardian Access)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1 flex items-center justify-between text-xs">
+                      <span className="flex items-center space-x-1">
+                        <Lock size={12} className="text-brand-blue" />
+                        <span>Pupil Portal Password *</span>
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-normal">Used at /login</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showStudentPass ? 'text' : 'password'}
+                        required
+                        placeholder="e.g. password123"
+                        value={formData.student_password}
+                        onChange={(e) => setFormData({ ...formData, student_password: e.target.value })}
+                        className="w-full p-2 pr-9 border border-slate-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-brand-blue"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowStudentPass(!showStudentPass)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showStudentPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Pupil signs in with their Admission Number and this password.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1 flex items-center justify-between text-xs">
+                      <span className="flex items-center space-x-1">
+                        <Lock size={12} className="text-brand-blue" />
+                        <span>Parent Portal Password *</span>
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-normal">Used at /login</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showParentPass ? 'text' : 'password'}
+                        required
+                        placeholder="e.g. password123"
+                        value={formData.parent_password}
+                        onChange={(e) => setFormData({ ...formData, parent_password: e.target.value })}
+                        className="w-full p-2 pr-9 border border-slate-200 rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-brand-blue"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowParentPass(!showParentPass)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showParentPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Parent signs in with their email and this password to view results & pay fees.
+                    </p>
+                  </div>
                 </div>
               </div>
 
