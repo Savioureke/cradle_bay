@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-blue: #0062ff;
+  --brand-amber: #FFB703;
+  --brand-navy: #050e38;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  color: #050e38;
+  background-color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: #cbd5e1;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0062ff;
+}
+
+/* Original decorative animations preserved */
+.drop-anim { animation: drop 3s infinite ease-in-out; }
+@keyframes drop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+
+.zigzag-1 { animation: zigzag1 6s linear infinite; }
+@keyframes zigzag1 {
+  0%, 100% { transform: translate(0); }
+  25% { transform: translate(8px, 8px); }
+  50% { transform: translate(4px, 4px); }
+  75% { transform: translate(8px, -4px); }
+}
+
+.zigzag-2 { animation: zigzag2 7s linear infinite; }
+@keyframes zigzag2 {
+  0%, 100% { transform: translate(0); }
+  25% { transform: translate(-8px, -8px); }
+  50% { transform: translate(-4px, -4px); }
+  75% { transform: translate(-8px, 4px); }
+}
+
+.pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 98, 255, 0.4); }
+  50% { box-shadow: 0 0 0 14px rgba(0, 98, 255, 0); }
+}
+
+/* Printable report card and receipt styling */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-area, .printable-area * {
+    visibility: visible;
+  }
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
