@@ -29,8 +29,8 @@ const StudentsModule = () => {
     class_id: '',
     blood_group: 'O+',
     genotype: 'AA',
-    state_of_origin: 'Plateau',
-    lga: 'Bokkos',
+    state_of_origin: 'Cross River',
+    lga: 'Calabar',
     home_address: '',
     medical_conditions: '',
     guardian_name: '',
@@ -93,8 +93,8 @@ const StudentsModule = () => {
       class_id: classes[0]?.id || '',
       blood_group: 'O+',
       genotype: 'AA',
-      state_of_origin: 'Plateau',
-      lga: 'Bokkos',
+      state_of_origin: 'Cross River',
+      lga: 'Calabar',
       home_address: '',
       medical_conditions: '',
       guardian_name: '',
@@ -121,8 +121,8 @@ const StudentsModule = () => {
       class_id: student.class_id || '',
       blood_group: student.blood_group || 'O+',
       genotype: student.genotype || 'AA',
-      state_of_origin: student.state_of_origin || 'Plateau',
-      lga: student.lga || 'Bokkos',
+      state_of_origin: student.state_of_origin || 'Cross River',
+      lga: student.lga || 'Calabar',
       home_address: student.home_address || '',
       medical_conditions: student.medical_conditions || '',
       guardian_name: primaryG?.full_name || '',
@@ -658,7 +658,7 @@ const StudentsModule = () => {
                 <label className="block text-slate-700 font-bold mb-1">Residential Address</label>
                 <input
                   type="text"
-                  placeholder="e.g. Fwangnin Village, Bokkos"
+                  placeholder="e.g. Calabar"
                   value={formData.home_address}
                   onChange={(e) => setFormData({ ...formData, home_address: e.target.value })}
                   className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-blue"

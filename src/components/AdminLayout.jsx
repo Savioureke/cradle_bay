@@ -128,7 +128,7 @@ const AdminLayout = () => {
               <Menu size={22} />
             </button>
             <div className="flex items-center space-x-2 text-xs font-medium text-slate-500">
-              <span>Bokkos, Plateau State</span>
+              <span>Calabar, Cross River State</span>
               <ChevronRight size={14} />
               <span className="text-slate-800 font-semibold">{school.name}</span>
             </div>

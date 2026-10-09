@@ -56,7 +56,7 @@ const LoginPage = () => {
           {school.name}
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Bokkos, Plateau State • Terminal Results, CBT Exams & School Fees
+          Calabar, Cross River State • Terminal Results, CBT Exams & School Fees
         </p>
       </div>
 

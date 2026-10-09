@@ -163,7 +163,7 @@ const ResultCheckerPublic = () => {
 
       {/* Footer */}
       <footer className="py-6 text-center text-xs text-slate-400 border-t bg-white">
-        © {new Date().getFullYear()} {school.name}, Bokkos, Plateau State, Nigeria. All rights reserved.
+        © {new Date().getFullYear()} {school.name}, Calabar, Cross River State, Nigeria. All rights reserved.
       </footer>
 
       {/* Printable Modal */}

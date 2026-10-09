@@ -50,7 +50,7 @@ const AdminLoginPage = () => {
           Administrator Console
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          {school.name} • Bokkos, Plateau State
+          {school.name} • Calabar, Cross River State
         </p>
       </div>
 

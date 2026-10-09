@@ -8,7 +8,7 @@ export const SchoolProvider = ({ children }) => {
     name: 'Cradle Bay School',
     code: 'EAF',
     motto: 'Excellence, Character and Knowledge',
-    address: 'Fwangnin Village, Bokkos LGA, Plateau State, Nigeria',
+    address: 'Calabar, Cross River State, Nigeria',
     phone: '+234 803 456 7890',
     email: 'admin@cradlebay.sch.ng',
     logo_url: '/img/logo.png',
