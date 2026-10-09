@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Printer, Download, X, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 

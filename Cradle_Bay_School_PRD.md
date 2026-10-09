@@ -1,4 +1,4 @@
-﻿# Product Requirements Document (PRD)
+# Product Requirements Document (PRD)
 ## Cradle Bay School — School Management Portal
 
 **School:** Cradle Bay School
