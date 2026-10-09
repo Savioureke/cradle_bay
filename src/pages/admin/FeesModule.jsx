@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { 
@@ -134,7 +134,7 @@ const FeesModule = () => {
           recipientPhone: selectedInvoiceForPayment.students?.phone || '08034567890',
           recipientName: `${selectedInvoiceForPayment.students?.first_name || ''} ${selectedInvoiceForPayment.students?.last_name || ''}`.trim() || 'Parent',
           eventType: 'FEE_PAYMENT',
-          message: `Eden Academy: Payment of ₦${Number(manualAmount).toLocaleString()} recorded for ${selectedInvoiceForPayment.students?.first_name || 'Pupil'} (${selectedInvoiceForPayment.invoice_number}). Channel: ${manualChannel.toUpperCase()}. Ref: ${ref}`,
+          message: `Cradle Bay School: Payment of ₦${Number(manualAmount).toLocaleString()} recorded for ${selectedInvoiceForPayment.students?.first_name || 'Pupil'} (${selectedInvoiceForPayment.invoice_number}). Channel: ${manualChannel.toUpperCase()}. Ref: ${ref}`,
           referenceId: ref,
         });
       } catch (smsErr) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { sendSmsNotification } from '../../lib/smsService';
@@ -39,7 +39,7 @@ const SettingsModule = () => {
   const [smsPhone, setSmsPhone] = useState('08034567890');
   const [smsRecipient, setSmsRecipient] = useState('Saviour (Technical Lead)');
   const [smsEvent, setSmsEvent] = useState('GENERAL');
-  const [smsMessage, setSmsMessage] = useState('Eden Academy Test SMS: Term portal live with SMS dispatch system active.');
+  const [smsMessage, setSmsMessage] = useState('Cradle Bay School Test SMS: Term portal live with SMS dispatch system active.');
   const [sendingSms, setSendingSms] = useState(false);
 
   const fetchSettingsData = async () => {

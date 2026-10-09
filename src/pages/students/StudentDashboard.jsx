@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSchool } from '../../context/SchoolContext';
@@ -64,7 +64,7 @@ const StudentDashboard = () => {
           Hello, {isParent ? activeWard?.name : user?.full_name}!
         </h1>
         <p className="text-slate-300 text-xs sm:text-sm mt-1">
-          {isParent ? `Monitoring academic progress & fees for ${activeWard?.name}` : 'Welcome to your Eden Academy pupil dashboard.'}
+          {isParent ? `Monitoring academic progress & fees for ${activeWard?.name}` : 'Welcome to your Cradle Bay School pupil dashboard.'}
         </p>
 
         <div className="mt-5 flex flex-wrap gap-2 text-xs">

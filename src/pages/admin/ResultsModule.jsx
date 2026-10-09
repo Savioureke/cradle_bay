@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { 
@@ -169,7 +169,7 @@ const ResultsModule = () => {
         recipientPhone: rc.students?.phone || '08034567890',
         recipientName: `${studentName}'s Parent`,
         eventType: 'RESULT_AVAILABLE',
-        message: `Eden Academy Notice: Terminal result for ${rc.students?.first_name} (${rc.classes?.name || 'Class'}) is now published! Average: ${rc.average_score}%, Position: ${rc.position_in_class || 'N/A'}. Log into the student portal to inspect and print.`,
+        message: `Cradle Bay School Notice: Terminal result for ${rc.students?.first_name} (${rc.classes?.name || 'Class'}) is now published! Average: ${rc.average_score}%, Position: ${rc.position_in_class || 'N/A'}. Log into the student portal to inspect and print.`,
         referenceId: rc.id,
       });
 

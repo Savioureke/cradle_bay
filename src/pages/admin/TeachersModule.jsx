@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { 
@@ -116,8 +116,8 @@ const TeachersModule = () => {
     if (!teacherEmail) {
       const nameParts = formData.full_name.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter(Boolean);
       teacherEmail = nameParts.length >= 2 
-        ? `${nameParts[0]}.${nameParts[nameParts.length - 1]}@edenacademyfwangnin.sch.ng`
-        : `teacher.${Date.now().toString().slice(-4)}@edenacademyfwangnin.sch.ng`;
+        ? `${nameParts[0]}.${nameParts[nameParts.length - 1]}@cradlebay.sch.ng`
+        : `teacher.${Date.now().toString().slice(-4)}@cradlebay.sch.ng`;
     }
 
     try {

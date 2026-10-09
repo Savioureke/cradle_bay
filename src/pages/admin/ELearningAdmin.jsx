@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { 
@@ -63,7 +63,7 @@ const ELearningAdmin = () => {
         description: resDesc,
         week_number: Number(resWeek),
         resource_type: resType,
-        file_url: resUrl || 'https://edenacademyfwangnin.sch.ng/materials/sample.pdf'
+        file_url: resUrl || 'https://cradlebay.sch.ng/materials/sample.pdf'
       });
 
       if (error) throw error;

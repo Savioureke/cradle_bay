@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
@@ -6,7 +6,7 @@ const AuthContext = createContext(null);
 export const DEMO_USERS = {
   admin: {
     id: 'demo-admin-001',
-    email: 'admin@edenacademyfwangnin.sch.ng',
+    email: 'admin@cradlebay.sch.ng',
     role: 'admin',
     full_name: 'Saviour Admin (Lead)',
     phone: '+234 803 456 7890',
@@ -14,7 +14,7 @@ export const DEMO_USERS = {
   teacher: {
     id: 'demo-teacher-001',
     teacher_id: 'eaf-teacher-001',
-    email: 'pam.gyang@edenacademyfwangnin.sch.ng',
+    email: 'pam.gyang@cradlebay.sch.ng',
     role: 'teacher',
     full_name: 'Mr. Dung Pam Gyang',
     phone: '+234 803 111 2233',
@@ -188,7 +188,7 @@ export const AuthProvider = ({ children }) => {
       // 4. Check if Admin
       const lower = identifier.toLowerCase();
       if (
-        lower === 'admin@edenacademyfwangnin.sch.ng' || 
+        lower === 'admin@cradlebay.sch.ng' || 
         lower === 'admin' ||
         (roleHint === 'admin' && (lower.includes('admin') || lower === 'saviour'))
       ) {

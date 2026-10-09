@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
             <span>Official Administrative Console</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Eden Academy Fwangnin Portal
+            Cradle Bay School Fwangnin Portal
           </h1>
           <p className="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed">
             Bokkos LGA, Plateau State, Nigeria. Managing academic lifecycle, Paystack fee settlement, CBT examination, and PIN result publishing.

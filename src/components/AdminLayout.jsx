@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSchool } from '../context/SchoolContext';
@@ -52,7 +52,7 @@ const AdminLayout = () => {
               E
             </div>
             <div>
-              <div className="font-extrabold text-sm tracking-wider uppercase text-white">Eden Academy</div>
+              <div className="font-extrabold text-sm tracking-wider uppercase text-white">Cradle Bay School</div>
               <div className="text-[11px] text-amber-400 font-semibold tracking-wide">Admin Portal</div>
             </div>
           </Link>

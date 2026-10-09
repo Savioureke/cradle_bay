@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSchool } from '../../context/SchoolContext';
 import { 
@@ -84,7 +84,7 @@ const AttendanceModule = () => {
           recipientPhone: targetLeave?.teachers?.phone || targetLeave?.students?.phone || '08034567890',
           recipientName,
           eventType: 'LEAVE_STATUS',
-          message: `Eden Academy HR Notice: Leave request from ${targetLeave?.start_date || 'period'} to ${targetLeave?.end_date || 'period'} has been ${status.toUpperCase()}.`,
+          message: `Cradle Bay School HR Notice: Leave request from ${targetLeave?.start_date || 'period'} to ${targetLeave?.end_date || 'period'} has been ${status.toUpperCase()}.`,
           referenceId: leaveId,
         });
       } catch (smsErr) {

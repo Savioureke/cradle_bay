@@ -1,16 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 const SchoolContext = createContext(null);
 
 export const SchoolProvider = ({ children }) => {
   const [school, setSchool] = useState({
-    name: 'Eden Academy Fwangnin',
+    name: 'Cradle Bay School Fwangnin',
     code: 'EAF',
     motto: 'Excellence, Character and Knowledge',
     address: 'Fwangnin Village, Bokkos LGA, Plateau State, Nigeria',
     phone: '+234 803 456 7890',
-    email: 'admin@edenacademyfwangnin.sch.ng',
+    email: 'admin@cradlebay.sch.ng',
     logo_url: '/img/logo.png',
   });
 
