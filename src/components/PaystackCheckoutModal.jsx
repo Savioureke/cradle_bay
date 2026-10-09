@@ -118,7 +118,7 @@ const PaystackCheckoutModal = ({ invoice, student, onSuccess, onClose }) => {
             </div>
             <div>
               <h2 className="font-bold text-sm">Paystack Secure Checkout</h2>
-              <p className="text-[11px] text-slate-300">Cradle Bay School Fwangnin Bursary</p>
+              <p className="text-[11px] text-slate-300">Cradle Bay School Bursary</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 text-slate-300">

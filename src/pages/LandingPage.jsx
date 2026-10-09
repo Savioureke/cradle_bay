@@ -123,7 +123,7 @@ const LandingPage = () => {
             {/* Left Copy */}
             <div className="space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 text-brand-blue px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide">
-                <span>Welcome to Cradle Bay School Fwangnin</span>
+                <span>Welcome to Cradle Bay School</span>
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-brand-navy tracking-tight leading-tight">

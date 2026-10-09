@@ -5,7 +5,7 @@ const SchoolContext = createContext(null);
 
 export const SchoolProvider = ({ children }) => {
   const [school, setSchool] = useState({
-    name: 'Cradle Bay School Fwangnin',
+    name: 'Cradle Bay School',
     code: 'EAF',
     motto: 'Excellence, Character and Knowledge',
     address: 'Fwangnin Village, Bokkos LGA, Plateau State, Nigeria',
